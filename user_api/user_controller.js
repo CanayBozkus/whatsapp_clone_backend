@@ -56,8 +56,22 @@ exports.createUser = async (req, res, next) => {
                     success: false,
                 })
             }
+
+            const token = jwt.sign(
+                {
+                    random: Math.floor(Math.random() * 1000),
+                    name: response.name,
+                    phoneNumber: response.phoneNumber,
+                    id: response._id,
+                    createdDate: Date.now()*Math.random()
+                },
+                process.env.JWT_SECRET_KEY
+            )
             res.status(201).json({
                 success: true,
+                token,
+                contacts: registeredContactsPhoneNumber,
+                id: response._id
             })
         })
     }
