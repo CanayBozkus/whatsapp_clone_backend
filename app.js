@@ -11,13 +11,13 @@ const port = process.env.PORT
 
 const app = express()
 
+app.use(bodyParser({limit: '5mb'}));
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 
 app.use(userAPIRoutes)
 
 app.get('/test', (req, res, next) => {
-    console.log('test')
     res.json({
         success: true,
     })

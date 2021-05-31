@@ -1,7 +1,9 @@
 const { validationResult } = require('express-validator')
 const jwt = require('jsonwebtoken')
-const User = require('../models/user')
+const fs = require('fs')
+const path = require('path')
 
+const User = require('../models/user')
 const Constant = require('./constant')
 
 exports.createUser = async (req, res, next) => {
@@ -18,6 +20,8 @@ exports.createUser = async (req, res, next) => {
         const phoneNumber = req.body.phoneNumber.replace(Constant.clearPhoneNumberRegex, '').slice(-10)
         const name = req.body.name
         const contacts = req.body.contacts
+        const profilePictureName = req.body.profilePictureName
+        const profilePicture = req.body.profilePicture
 
         const registeredUser = await User.findOne({ phoneNumber: phoneNumber })
 
@@ -37,13 +41,24 @@ exports.createUser = async (req, res, next) => {
         const user = new User({
             name,
             phoneNumber,
-            contacts: registeredContactsPhoneNumber
+            contacts: registeredContactsPhoneNumber,
+            profilePictureName
         })
 
         const response = await user.save()
 
-        res.status(201).json({
-            success: true,
+        const filePath = path.join(__dirname, '..', 'images', profilePictureName);
+        fs.writeFile(filePath, Buffer.from(profilePicture), (err)=>{
+            if(err){
+                console.log(err)
+                user.remove()
+                return res.status(500).json({
+                    success: false,
+                })
+            }
+            res.status(201).json({
+                success: true,
+            })
         })
     }
     catch (e){
@@ -101,4 +116,11 @@ exports.login = async (req, res, next) => {
             success: false
         })
     }
+}
+
+exports.uploadProfilePicture = async (req, res, next) => {
+    console.log('inn')
+    res.json({
+        success: true
+    })
 }
