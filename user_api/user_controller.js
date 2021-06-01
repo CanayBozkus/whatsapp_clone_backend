@@ -132,22 +132,40 @@ exports.uploadProfilePicture = async (req, res, next) => {
     })
 }
 
-exports.checkIfNewContactsRegistered = async (req, res, next) => {
-    const validationErrors = validationResult(req)
+exports.checkAndUpdateContactList = async (req, res, next) => {
+    try{
+        const validationErrors = validationResult(req)
 
-    if(!validationErrors.isEmpty()){
-        return res.json({
-            success: false,
-            message: validationErrors
+        if(!validationErrors.isEmpty()){
+            return res.json({
+                success: false,
+                message: validationErrors
+            })
+        }
+        const newContactsPhoneNumber = req.body.newContactsPhoneNumber
+        const removedContactsPhoneNumber = req.body.removedContactsPhoneNumber
+
+        const registeredUsers = await User.find({phoneNumber: { $in: newContactsPhoneNumber}}).select('phoneNumber about -_id')
+        const registeredUsersPhoneNumber = registeredUsers ? registeredUsers.map(user => user.phoneNumber) : []
+        const user = await User.findById(req.userId)
+
+        const userContacts = user.contacts;
+
+        const userContactsReduced = userContacts.filter(number => !removedContactsPhoneNumber.contains(number))
+
+        user.contacts = userContactsReduced.concat(registeredUsersPhoneNumber)
+
+        user.save()
+
+        res.json({
+            success: true,
+            registeredUsers
         })
     }
-    const newContactsPhoneNumber = req.body.newContactsPhoneNumber
-
-    const registeredUsers = await User.find({phoneNumber: { $in: newContactsPhoneNumber}}).select('phoneNumber about -_id')
-
-    console.log(registeredUsers)
-    res.json({
-        success: true,
-        registeredUsers
-    })
+    catch (e) {
+        console.log(e)
+        res.status(500).json({
+            success: false,
+        })
+    }
 }

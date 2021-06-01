@@ -39,10 +39,11 @@ router.post(
 )
 
 router.post(
-    '/check-if-new-contacts-registered',
+    '/check-and-update-contact-list',
     loginRequired,
     body('newContactsPhoneNumber').isArray({min: 1}),
-    controller.checkIfNewContactsRegistered
+    body('removedContactsPhoneNumber').exists().isArray(),
+    controller.checkAndUpdateContactList
 )
 
 module.exports = router
