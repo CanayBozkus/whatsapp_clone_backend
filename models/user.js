@@ -28,7 +28,11 @@ const userModel = new Schema({
         {
             type: String,
         }
-    ]
+    ],
+    about: {
+        type: String,
+        default: 'Hey there, I am new on WhatsApp.'
+    }
 })
 
 module.exports = mongoose.model('User', userModel)
