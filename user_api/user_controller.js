@@ -19,7 +19,6 @@ exports.createUser = async (req, res, next) => {
     try{
         const phoneNumber = req.body.phoneNumber.replace(Constant.clearPhoneNumberRegex, '').slice(-10)
         const name = req.body.name
-        const contacts = req.body.contacts
         const profilePictureName = req.body.profilePictureName
         const profilePicture = req.body.profilePicture
 
@@ -32,16 +31,10 @@ exports.createUser = async (req, res, next) => {
             })
         }
 
-        const registeredContacts = await User.find({
-            phoneNumber: {$in: contacts}
-        })
-
-        const registeredContactsPhoneNumber = registeredContacts.map(user => user.phoneNumber)
-
         const user = new User({
             name,
             phoneNumber,
-            contacts: registeredContactsPhoneNumber,
+            contacts: [],
             profilePictureName
         })
 
@@ -136,5 +129,25 @@ exports.uploadProfilePicture = async (req, res, next) => {
     console.log('inn')
     res.json({
         success: true
+    })
+}
+
+exports.checkIfNewContactsRegistered = async (req, res, next) => {
+    const validationErrors = validationResult(req)
+
+    if(!validationErrors.isEmpty()){
+        return res.json({
+            success: false,
+            message: validationErrors
+        })
+    }
+    const newContactsPhoneNumber = req.body.newContactsPhoneNumber
+
+    const registeredUsers = await User.find({phoneNumber: { $in: newContactsPhoneNumber}}).select('phoneNumber about -_id')
+
+    console.log(registeredUsers)
+    res.json({
+        success: true,
+        registeredUsers
     })
 }

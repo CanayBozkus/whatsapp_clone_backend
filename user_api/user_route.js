@@ -17,7 +17,6 @@ router.post(
         .isLength({min: 10})
         .withMessage('Invalid phone number'),
     body('name').isLength({min: 1}).withMessage('Name is required'),
-    body('contacts').isArray(),
     body('profilePictureName').exists(),
     controller.createUser
 )
@@ -37,6 +36,13 @@ router.post(
     '/upload-profile-picture',
     fileManager.single('image'),
     controller.uploadProfilePicture
+)
+
+router.post(
+    '/check-if-new-contacts-registered',
+    loginRequired,
+    body('newContactsPhoneNumber').isArray({min: 1}),
+    controller.checkIfNewContactsRegistered
 )
 
 module.exports = router
