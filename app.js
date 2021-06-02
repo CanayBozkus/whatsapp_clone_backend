@@ -5,6 +5,7 @@ const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 
 const userAPIRoutes = require('./user_api/user_route')
+const messageAPIRoutes = require('./message_api/message_route')
 
 const MONGODB_URI = process.env.MONGODB_URI
 const port = process.env.PORT
@@ -16,6 +17,7 @@ app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 
 app.use(userAPIRoutes)
+app.use(messageAPIRoutes)
 
 app.get('/test', (req, res, next) => {
     res.json({
