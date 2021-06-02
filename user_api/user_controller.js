@@ -163,17 +163,25 @@ exports.checkAndUpdateContactList = async (req, res, next) => {
         const newContactsPhoneNumber = req.body.newContactsPhoneNumber
         const removedContactsPhoneNumber = req.body.removedContactsPhoneNumber
 
-        const registeredUsers = await User.find({phoneNumber: { $in: newContactsPhoneNumber}}).select('phoneNumber about -_id')
+        let registeredUsers = await User.find({phoneNumber: { $in: newContactsPhoneNumber}}).select('phoneNumber about haveProfilePicture -_id')
         const registeredUsersPhoneNumber = registeredUsers ? registeredUsers.map(user => user.phoneNumber) : []
         const user = await User.findById(req.userId)
 
         const userContacts = user.contacts;
 
-        const userContactsReduced = userContacts.filter(number => !removedContactsPhoneNumber.contains(number))
+        const userContactsReduced = userContacts.filter(number => !removedContactsPhoneNumber.includes(number))
 
         user.contacts = userContactsReduced.concat(registeredUsersPhoneNumber)
 
         user.save()
+
+        registeredUsers = registeredUsers.map(user => {
+            if(user.haveProfilePicture){
+                const filePath = path.join(__dirname, '..', 'images', `${user.phoneNumber}_profile_picture`);
+                return {...user.toObject(), 'profilePicture': fs.readFileSync(filePath).toJSON().data}
+            }
+            return {...user.toObject()}
+        })
 
         res.json({
             success: true,
