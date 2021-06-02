@@ -19,7 +19,7 @@ exports.createUser = async (req, res, next) => {
     try{
         const phoneNumber = req.body.phoneNumber.replace(Constant.clearPhoneNumberRegex, '').slice(-10)
         const name = req.body.name
-        const profilePictureName = req.body.profilePictureName
+        const haveProfilePicture = req.body.haveProfilePicture
         const profilePicture = req.body.profilePicture
 
         const registeredUser = await User.findOne({ phoneNumber: phoneNumber })
@@ -35,38 +35,56 @@ exports.createUser = async (req, res, next) => {
             name,
             phoneNumber,
             contacts: [],
-            profilePictureName
+            haveProfilePicture
         })
 
         const response = await user.save()
 
-        const filePath = path.join(__dirname, '..', 'images', profilePictureName);
-        fs.writeFile(filePath, Buffer.from(profilePicture), (err)=>{
-            if(err){
-                console.log(err)
-                user.remove()
-                return res.status(500).json({
-                    success: false,
-                })
-            }
+        if(haveProfilePicture){
+            const filePath = path.join(__dirname, '..', 'images', `${phoneNumber}_profile_picture`);
+            return fs.writeFile(filePath, Buffer.from(profilePicture), (err)=>{
+                if(err){
+                    console.log(err)
+                    user.remove()
+                    return res.status(500).json({
+                        success: false,
+                    })
+                }
 
-            const token = jwt.sign(
-                {
-                    random: Math.floor(Math.random() * 1000),
-                    name: response.name,
-                    phoneNumber: response.phoneNumber,
-                    id: response._id,
-                    createdDate: Date.now()*Math.random()
-                },
-                process.env.JWT_SECRET_KEY
-            )
-            res.status(201).json({
-                success: true,
-                token,
-                contacts: registeredContactsPhoneNumber,
-                id: response._id
+                const token = jwt.sign(
+                    {
+                        random: Math.floor(Math.random() * 1000),
+                        name: response.name,
+                        phoneNumber: response.phoneNumber,
+                        id: response._id,
+                        createdDate: Date.now()*Math.random()
+                    },
+                    process.env.JWT_SECRET_KEY
+                )
+                res.status(201).json({
+                    success: true,
+                    token,
+                    id: response._id
+                })
             })
+        }
+
+        const token = jwt.sign(
+            {
+                random: Math.floor(Math.random() * 1000),
+                name: response.name,
+                phoneNumber: response.phoneNumber,
+                id: response._id,
+                createdDate: Date.now()*Math.random()
+            },
+            process.env.JWT_SECRET_KEY
+        )
+        res.status(201).json({
+            success: true,
+            token,
+            id: response._id
         })
+
     }
     catch (e){
         console.log(e)

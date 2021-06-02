@@ -12,10 +12,6 @@ const userModel = new Schema({
         type: String,
         required: true,
     },
-    profilePictureName: {
-        type: String,
-        default: null
-    },
     lastSeenTime: {
         type: Date,
         default: null
@@ -32,6 +28,10 @@ const userModel = new Schema({
     about: {
         type: String,
         default: 'Hey there, I am new on WhatsApp.'
+    },
+    haveProfilePicture: {
+        type: Boolean,
+        default: false
     }
 })
 

@@ -17,7 +17,9 @@ router.post(
         .isLength({min: 10})
         .withMessage('Invalid phone number'),
     body('name').isLength({min: 1}).withMessage('Name is required'),
-    body('profilePictureName').exists(),
+    body('haveProfilePicture')
+        .exists()
+        .isBoolean(),
     controller.createUser
 )
 
