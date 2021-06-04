@@ -195,3 +195,38 @@ exports.checkAndUpdateContactList = async (req, res, next) => {
         })
     }
 }
+
+exports.getUnListedContactData = async (req, res, next) => {
+    const validationErrors = validationResult(req)
+
+    if(!validationErrors.isEmpty()){
+        return res.json({
+            success: false,
+            message: validationErrors
+        })
+    }
+
+    const phoneNumber = req.query.phoneNumber
+    const from = req.query.from
+    let profilePicture;
+
+    const user = await User.findOne({phoneNumber: phoneNumber})
+
+    if(!user){
+        return res.json({
+            success: false,
+        })
+    }
+
+    if(user.haveProfilePicture){
+        const filePath = path.join(__dirname, '..', 'images', `${user.phoneNumber}_profile_picture`);
+        profilePicture = fs.readFileSync(filePath).toJSON().data
+    }
+    console.log(user)
+    res.json({
+        success: true,
+        'about': user.about,
+        'haveProfilePicture': user.haveProfilePicture,
+        'profilePicture': profilePicture,
+    })
+}

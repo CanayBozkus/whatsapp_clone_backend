@@ -15,12 +15,13 @@ exports.sendMessage = async (req, res, next) => {
 
     const message = req.body.message
     const to = req.body.to
+    const from = req.body.from
     const roomId = req.body.roomId
     const sendTimeString = req.body.sendTime
 
-    const toUser = await User.findOne({phoneNumber: to})
+    const users = await User.find({phoneNumber: {$in: [to, from]}})
 
-    if(!toUser){
+    if(users.length !== 2){
         return res.json({
             success: false,
         })
@@ -32,6 +33,7 @@ exports.sendMessage = async (req, res, next) => {
         message,
         to,
         roomId,
+        from,
         sendTime: sendTimeString
     })
 
