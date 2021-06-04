@@ -5,6 +5,8 @@ const path = require('path')
 
 const User = require('../models/user')
 const Constant = require('./constant')
+const connections = require('../cache')
+const socket = require('../socket')
 
 exports.createUser = async (req, res, next) => {
     const validationErrors = validationResult(req)
@@ -222,11 +224,68 @@ exports.getUnListedContactData = async (req, res, next) => {
         const filePath = path.join(__dirname, '..', 'images', `${user.phoneNumber}_profile_picture`);
         profilePicture = fs.readFileSync(filePath).toJSON().data
     }
-    console.log(user)
+
     res.json({
         success: true,
         'about': user.about,
         'haveProfilePicture': user.haveProfilePicture,
         'profilePicture': profilePicture,
+    })
+}
+
+exports.checkContactStatus = async (req, res, next) => {
+    const validationErrors = validationResult(req)
+
+    if(!validationErrors.isEmpty()){
+        return res.json({
+            success: false,
+            message: validationErrors
+        })
+    }
+
+    const phoneNumber = req.query.phoneNumber
+    const userPhoneNumber = req.query.userPhoneNumber
+    console.log(userPhoneNumber)
+    console.log(req.userPhoneNumber)
+    if(userPhoneNumber !== req.userPhoneNumber){
+        return res.json({
+            success: false,
+        })
+    }
+
+    const user = await User.findOne({phoneNumber: phoneNumber})
+
+    if(!user){
+        return res.json({
+            success: false,
+        })
+    }
+
+    res.json({
+        success: true,
+        'isOnline': Object.keys(connections).includes(phoneNumber),
+        'lastSeenTime': user.lastSeenTime,
+    })
+}
+
+exports.disconnect = async (req, res, next) => {
+    const userPhoneNumber = req.userPhoneNumber
+
+    const user = await User.findOne({ phoneNumber: userPhoneNumber})
+
+    if(!user){
+        return res.json({
+            success: false
+        })
+    }
+
+    user.lastSeenTime = Date.now()
+    user.save()
+
+    delete connections[userPhoneNumber]
+
+    socket.getIO().emit(`${userPhoneNumber}-status-channel`, {
+        'isOnline': false,
+        'lastSeenTime': user.lastSeenTime.toISOString()
     })
 }

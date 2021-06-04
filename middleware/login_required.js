@@ -27,6 +27,6 @@ module.exports = (req, res, next) => {
     }
 
     req.userId = decodedToken.id
-    req.userPhoneNumber = decodedToken.phone
+    req.userPhoneNumber = decodedToken.phoneNumber
     next()
 }

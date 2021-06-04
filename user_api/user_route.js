@@ -65,4 +65,28 @@ router.get(
     controller.getUnListedContactData
 )
 
+router.get(
+    '/check-contact-status',
+    loginRequired,
+    query('phoneNumber')
+        .notEmpty()
+        .withMessage('Phone number is required')
+        .replace(Constant.clearPhoneNumberRegex, '')
+        .isLength({min: 10})
+        .withMessage('Invalid phone number'),
+    query('userPhoneNumber')
+        .notEmpty()
+        .withMessage('Phone number is required')
+        .replace(Constant.clearPhoneNumberRegex, '')
+        .isLength({min: 10})
+        .withMessage('Invalid phone number'),
+    controller.checkContactStatus
+)
+
+router.post(
+    '/disconnect',
+    loginRequired,
+    controller.disconnect
+)
+
 module.exports = router
