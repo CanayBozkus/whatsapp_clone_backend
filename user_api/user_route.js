@@ -3,7 +3,7 @@ const { body, query } = require('express-validator');
 
 const controller = require('./user_controller')
 const loginRequired = require('../middleware/login_required')
-const Constant = require('./constant')
+const Constant = require('../constant')
 const fileManager = require('../file_manager')
 
 const router = express.Router()

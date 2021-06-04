@@ -4,7 +4,7 @@ const fs = require('fs')
 const path = require('path')
 
 const User = require('../models/user')
-const Constant = require('./constant')
+const Constant = require('../constant')
 const connections = require('../cache')
 const socket = require('../socket')
 
@@ -245,8 +245,7 @@ exports.checkContactStatus = async (req, res, next) => {
 
     const phoneNumber = req.query.phoneNumber
     const userPhoneNumber = req.query.userPhoneNumber
-    console.log(userPhoneNumber)
-    console.log(req.userPhoneNumber)
+
     if(userPhoneNumber !== req.userPhoneNumber){
         return res.json({
             success: false,
