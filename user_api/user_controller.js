@@ -53,16 +53,8 @@ exports.createUser = async (req, res, next) => {
                     })
                 }
 
-                const token = jwt.sign(
-                    {
-                        random: Math.floor(Math.random() * 1000),
-                        name: response.name,
-                        phoneNumber: response.phoneNumber,
-                        id: response._id,
-                        createdDate: Date.now()*Math.random()
-                    },
-                    process.env.JWT_SECRET_KEY
-                )
+                const token = response.login()
+
                 res.status(201).json({
                     success: true,
                     token,
@@ -71,16 +63,8 @@ exports.createUser = async (req, res, next) => {
             })
         }
 
-        const token = jwt.sign(
-            {
-                random: Math.floor(Math.random() * 1000),
-                name: response.name,
-                phoneNumber: response.phoneNumber,
-                id: response._id,
-                createdDate: Date.now()*Math.random()
-            },
-            process.env.JWT_SECRET_KEY
-        )
+        const token = response.login()
+
         res.status(201).json({
             success: true,
             token,
@@ -118,23 +102,28 @@ exports.login = async (req, res, next) => {
             })
         }
 
-        const token = jwt.sign(
-            {
-                random: Math.floor(Math.random() * 1000),
-                name: user.name,
-                phoneNumber: user.phoneNumber,
-                id: user._id,
-                createdDate: Date.now()*Math.random()
-            },
-            process.env.JWT_SECRET_KEY
-        )
+        const token = user.login()
+        let profilePicture
+
+        if(user.haveProfilePicture){
+            const filePath = path.join(__dirname, '..', 'images', `${user.phoneNumber}_profile_picture`);
+            profilePicture = fs.readFileSync(filePath).toJSON().data
+        }
 
         user.lastSeen = null;
-        await user.save()
+        user.save()
 
         res.json({
             success: true,
-            token: token
+            token: token,
+            "user": {
+                haveProfilePicture: user.haveProfilePicture,
+                profilePicture: profilePicture,
+                name: user.name,
+                about: user.about,
+                showLastSeen: user.showLastSeen,
+                id: user._id,
+            }
         })
     }
     catch (e){
