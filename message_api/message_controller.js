@@ -45,7 +45,10 @@ exports.sendMessage = async (req, res, next) => {
         if(user.phoneNumber === req.userPhoneNumber) return
         const fcmToken = user.fcmToken
         const fcmMessage = {
-            token: fcmToken,
+            notification: {
+                title: fromUser,
+                body: message
+            },
             data: {
                 message: message,
                 fromUser: fromUser,
@@ -54,7 +57,7 @@ exports.sendMessage = async (req, res, next) => {
                 click_action: "action"
             },
         }
-        fcm.sendMessage(fcmMessage)
+        fcm.sendMessageToDevice(fcmMessage, fcmToken)
     })
 
     res.json({

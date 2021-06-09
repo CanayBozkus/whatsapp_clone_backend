@@ -9,10 +9,10 @@ module.exports = {
         });
     },
 
-    async sendMessage(payload){
+    async sendMessageToDevice(payload, deviceToken){
         const messaging = admin.messaging()
 
-        const response = await messaging.send(payload)
+        const response = await messaging.sendToDevice(deviceToken, payload)
         return response
     }
 }

@@ -47,6 +47,7 @@ userModel.methods.login = function (){
             name: this.name,
             phoneNumber: this.phoneNumber,
             id: this._id,
+            fcmToken: this.fcmToken,
             createdDate: Date.now()*Math.random()
         },
         process.env.JWT_SECRET_KEY
