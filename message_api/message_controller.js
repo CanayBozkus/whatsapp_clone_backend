@@ -2,6 +2,7 @@ const { validationResult } = require('express-validator')
 const User = require('../models/user')
 const connections = require('../cache')
 const socket = require('../socket')
+const fcm = require('../fcm_manager')
 
 exports.sendMessage = async (req, res, next) => {
     const validationErrors = validationResult(req)
@@ -15,7 +16,7 @@ exports.sendMessage = async (req, res, next) => {
 
     const message = req.body.message
     const membersPhoneNumber = req.body.membersPhoneNumber
-    const from = req.body.from
+    const fromUser = req.body.from
     const roomId = req.body.roomId
     const sendTimeString = req.body.sendTime
 
@@ -27,6 +28,7 @@ exports.sendMessage = async (req, res, next) => {
         })
     }
 
+    /*
     membersPhoneNumber.forEach(phoneNumber => {
         if(phoneNumber === req.userPhoneNumber) return;
         const socketId = connections[phoneNumber]
@@ -36,6 +38,23 @@ exports.sendMessage = async (req, res, next) => {
             roomId,
             sendTime: sendTimeString
         })
+    })
+    */
+
+    users.forEach(user => {
+        if(user.phoneNumber === req.userPhoneNumber) return
+        const fcmToken = user.fcmToken
+        const fcmMessage = {
+            token: fcmToken,
+            data: {
+                message: message,
+                fromUser: fromUser,
+                roomId: roomId,
+                sendTime: sendTimeString,
+                click_action: "action"
+            },
+        }
+        fcm.sendMessage(fcmMessage)
     })
 
     res.json({

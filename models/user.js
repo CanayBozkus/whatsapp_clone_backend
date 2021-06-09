@@ -33,6 +33,10 @@ const userModel = new Schema({
     haveProfilePicture: {
         type: Boolean,
         default: false
+    },
+    fcmToken: {
+        type: String,
+        required: true,
     }
 })
 

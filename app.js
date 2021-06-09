@@ -4,6 +4,8 @@ const express = require('express')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 
+const fcm = require('./fcm_manager')
+
 const userAPIRoutes = require('./user_api/user_route')
 const messageAPIRoutes = require('./message_api/message_route')
 
@@ -29,6 +31,7 @@ mongoose
     .connect(MONGODB_URI)
     .then(result => {
         const server = app.listen(port, () => {
+            fcm.init()
             console.log('Listening port 3000')
         })
         const socket = require('./socket')

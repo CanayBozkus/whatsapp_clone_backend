@@ -20,6 +20,7 @@ router.post(
     body('haveProfilePicture')
         .exists()
         .isBoolean(),
+    body('fcmToken').exists().isString().isLength({min: 1}),
     controller.createUser
 )
 
@@ -31,6 +32,7 @@ router.post(
         .replace(Constant.clearPhoneNumberRegex, '')
         .isLength({min: 10})
         .withMessage('Invalid phone number'),
+    body('fcmToken').exists().isString().isLength({min: 1}),
     controller.login
 )
 

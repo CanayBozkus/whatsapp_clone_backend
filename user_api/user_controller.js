@@ -23,6 +23,7 @@ exports.createUser = async (req, res, next) => {
         const name = req.body.name
         const haveProfilePicture = req.body.haveProfilePicture
         const profilePicture = req.body.profilePicture
+        const fcmToken = req.body.fcmToken
 
         const registeredUser = await User.findOne({ phoneNumber: phoneNumber })
 
@@ -37,7 +38,8 @@ exports.createUser = async (req, res, next) => {
             name,
             phoneNumber,
             contacts: [],
-            haveProfilePicture
+            haveProfilePicture,
+            fcmToken
         })
 
         const response = await user.save()
@@ -92,7 +94,7 @@ exports.login = async (req, res, next) => {
 
     try{
         const phoneNumber = req.body.phoneNumber.replace(Constant.clearPhoneNumberRegex, '').slice(-10)
-
+        const fcmToken = req.body.fcmToken
         const user = await User.findOne({ phoneNumber: phoneNumber})
 
         if(!user){
@@ -111,6 +113,7 @@ exports.login = async (req, res, next) => {
         }
 
         user.lastSeen = null;
+        user.fcmToken = fcmToken
         user.save()
 
         res.json({
