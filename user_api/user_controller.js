@@ -7,6 +7,7 @@ const User = require('../models/user')
 const Constant = require('../constant')
 const connections = require('../cache')
 const socket = require('../socket')
+const fcm = require('../fcm_manager')
 
 exports.createUser = async (req, res, next) => {
     const validationErrors = validationResult(req)
@@ -254,7 +255,7 @@ exports.checkContactStatus = async (req, res, next) => {
 
     res.json({
         success: true,
-        'isOnline': Object.keys(connections).includes(phoneNumber),
+        'isOnline': user.lastSeenTime === null,
         'lastSeenTime': user.lastSeenTime,
     })
 }
@@ -273,10 +274,35 @@ exports.disconnect = async (req, res, next) => {
     user.lastSeenTime = Date.now()
     user.save()
 
-    delete connections[userPhoneNumber]
+    const payload = {
+        data: {
+            'isOnline': "false",
+            'lastSeenTime': user.lastSeenTime.toISOString()
+        }
+    }
+    const topic = `status-channel-${userPhoneNumber}`
 
-    socket.getIO().emit(`${userPhoneNumber}-status-channel`, {
-        'isOnline': false,
-        'lastSeenTime': user.lastSeenTime.toISOString()
+    fcm.sendMessageToTopic(payload, topic)
+
+}
+
+exports.connect = async (req, res, next) => {
+    const phoneNumber = req.body.phoneNumber
+    const user = await User.findOne({phoneNumber: phoneNumber}).exec()
+
+    user.lastSeenTime = null;
+    user.save()
+
+    const payload = {
+        data: {
+            'isOnline': "true",
+        }
+    }
+    const topic = `status-channel-${phoneNumber}`
+
+    fcm.sendMessageToTopic(payload, topic)
+
+    res.json({
+        success: true
     })
 }

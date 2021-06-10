@@ -14,5 +14,11 @@ module.exports = {
 
         const response = await messaging.sendToDevice(deviceToken, payload)
         return response
+    },
+
+    async sendMessageToTopic(payload, topic){
+        const messaging = admin.messaging()
+
+        return await messaging.sendToTopic(topic, payload)
     }
 }

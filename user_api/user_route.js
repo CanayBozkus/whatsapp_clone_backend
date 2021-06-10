@@ -91,4 +91,10 @@ router.post(
     controller.disconnect
 )
 
+router.post(
+    '/connect',
+    loginRequired,
+    controller.connect
+)
+
 module.exports = router
