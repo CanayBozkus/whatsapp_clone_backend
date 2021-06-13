@@ -12,6 +12,11 @@ class Constant {
     }
 
     clearPhoneNumberRegex = /[A-Za-z\*()\s#\.,\+\/\;-]/g
+
+    fcmType = {
+        'message': 0,
+        'message_seen': 1
+    }
 }
 
 module.exports = new Constant()

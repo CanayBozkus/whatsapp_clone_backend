@@ -3,6 +3,7 @@ const User = require('../models/user')
 const connections = require('../cache')
 const socket = require('../socket')
 const fcm = require('../fcm_manager')
+const Constant = require('../constant')
 
 exports.sendMessage = async (req, res, next) => {
     const validationErrors = validationResult(req)
@@ -50,6 +51,7 @@ exports.sendMessage = async (req, res, next) => {
                 body: message
             },
             data: {
+                type: Constant.fcmType['message'].toString(),
                 message: message,
                 fromUser: fromUser,
                 roomId: roomId,
@@ -79,14 +81,20 @@ exports.sendMessagesSeenInfo = async (req, res, next) => {
     const seenTime = req.body.seenTime
     const membersPhoneNumber = req.body.membersPhoneNumber
 
-    membersPhoneNumber.forEach(phoneNumber => {
-        if(phoneNumber === req.userPhoneNumber) return
-        const socketId = connections[phoneNumber]
-        console.log(socketId)
-        socket.getIO().to(socketId).emit('message-seen', {
-            seenTime,
-            roomId,
-        })
+    const users = await User.find({phoneNumber: {$in: membersPhoneNumber}})
+
+    users.forEach(user => {
+        if(user.phoneNumber === req.userPhoneNumber) return
+        const fcmToken = user.fcmToken
+        const fcmMessage = {
+            data: {
+                type: Constant.fcmType['message_seen'].toString(),
+                seenTime: seenTime,
+                roomId: roomId,
+                click_action: "action"
+            },
+        }
+        fcm.sendMessageToDevice(fcmMessage, fcmToken)
     })
 
     res.json({
