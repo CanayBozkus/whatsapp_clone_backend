@@ -15,7 +15,8 @@ class Constant {
 
     fcmType = {
         'message': 0,
-        'message_seen': 1
+        'message_seen': 1,
+        'message_received': 2
     }
 }
 

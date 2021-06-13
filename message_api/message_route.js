@@ -31,5 +31,13 @@ router.post(
     controller.sendMessagesSeenInfo
 )
 
+router.post(
+    '/send-messages-received-info',
+    loginRequired,
+    body('receivedTime').exists().isISO8601(),
+    body('roomId').exists().isString().isLength({min: 1}),
+    controller.sendMessageReceivedInfo
+)
+
 
 module.exports = router

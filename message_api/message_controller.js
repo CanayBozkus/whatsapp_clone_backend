@@ -101,3 +101,45 @@ exports.sendMessagesSeenInfo = async (req, res, next) => {
         success: true
     })
 }
+
+exports.sendMessageReceivedInfo = async (req, res, next) => {
+    const validationErrors = validationResult(req)
+
+    if(!validationErrors.isEmpty()){
+        return res.json({
+            success: false,
+            message: validationErrors
+        })
+    }
+
+    const roomId = req.body.roomId
+    const receivedTime = req.body.receivedTime
+    const messageOwnerPhoneNumber = req.body.messageOwnerPhoneNumber
+    const messageReceiverPhoneNumber = req.body.messageReceiverPhoneNumber
+
+    const users = await User.find({phoneNumber: {$in: [messageOwnerPhoneNumber, messageReceiverPhoneNumber]}})
+
+    if(users.length < 2){
+        return res.json({
+            success: false
+        })
+    }
+
+    const messageOwner = users.filter(user => user.phoneNumber === messageOwnerPhoneNumber)[0]
+
+    const fcmToken = messageOwner.fcmToken
+    const payload = {
+        data: {
+            type: Constant.fcmType['message_received'].toString(),
+            roomId: roomId,
+            receivedTime: receivedTime,
+            messageReceiverPhoneNumber: messageReceiverPhoneNumber
+        }
+    }
+
+    fcm.sendMessageToDevice(payload, fcmToken)
+
+    res.json({
+        success: true
+    })
+}
