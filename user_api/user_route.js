@@ -10,6 +10,7 @@ const router = express.Router()
 
 router.post(
     '/create-user',
+    fileManager.single('profilePicture'),
     body('phoneNumber')
         .notEmpty()
         .withMessage('Phone number is required')

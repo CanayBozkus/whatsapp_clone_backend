@@ -11,8 +11,11 @@ const fcm = require('../fcm_manager')
 
 exports.createUser = async (req, res, next) => {
     const validationErrors = validationResult(req)
-
+    let user;
     if(!validationErrors.isEmpty()){
+        if(req.file){
+            fs.unlink(req.file.path, () => {})
+        }
         return res.json({
             success: false,
             message: validationErrors
@@ -23,7 +26,6 @@ exports.createUser = async (req, res, next) => {
         const phoneNumber = req.body.phoneNumber.replace(Constant.clearPhoneNumberRegex, '').slice(-10)
         const name = req.body.name
         const haveProfilePicture = req.body.haveProfilePicture
-        const profilePicture = req.body.profilePicture
         const fcmToken = req.body.fcmToken
 
         const registeredUser = await User.findOne({ phoneNumber: phoneNumber })
@@ -35,7 +37,7 @@ exports.createUser = async (req, res, next) => {
             })
         }
 
-        const user = new User({
+        user = new User({
             name,
             phoneNumber,
             contacts: [],
@@ -45,25 +47,9 @@ exports.createUser = async (req, res, next) => {
 
         const response = await user.save()
 
-        if(haveProfilePicture){
+        if(haveProfilePicture.toLowerCase() === 'true'){
             const filePath = path.join(__dirname, '..', 'images', `${phoneNumber}_profile_picture`);
-            return fs.writeFile(filePath, Buffer.from(profilePicture), (err)=>{
-                if(err){
-                    console.log(err)
-                    user.remove()
-                    return res.status(500).json({
-                        success: false,
-                    })
-                }
-
-                const token = response.login()
-
-                res.status(201).json({
-                    success: true,
-                    token,
-                    id: response._id
-                })
-            })
+            fs.rename(req.file.path, filePath, () => {})
         }
 
         const token = response.login()
@@ -76,6 +62,12 @@ exports.createUser = async (req, res, next) => {
 
     }
     catch (e){
+        if(req.file){
+            fs.unlink(req.file.path, () => {})
+        }
+        if(user) {
+            user.remove()
+        }
         console.log(e)
         res.status(500).json({
             success: false
