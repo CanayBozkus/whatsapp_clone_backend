@@ -16,7 +16,13 @@ exports.sendMessage = async (req, res, next) => {
     }
 
     const message = req.body.message
-    const membersPhoneNumber = req.body.membersPhoneNumber
+    let membersPhoneNumber
+    try {
+         membersPhoneNumber = JSON.parse(req.body.membersPhoneNumber.toString())
+    }
+    catch (e) {
+         membersPhoneNumber = req.body.membersPhoneNumber
+    }
     const fromUser = req.body.from
     const roomId = req.body.roomId
     const sendTimeString = req.body.sendTime

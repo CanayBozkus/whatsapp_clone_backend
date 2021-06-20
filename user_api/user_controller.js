@@ -31,6 +31,9 @@ exports.createUser = async (req, res, next) => {
         const registeredUser = await User.findOne({ phoneNumber: phoneNumber })
 
         if(registeredUser != null){
+            if(req.file){
+                fs.unlink(req.file.path, () => {})
+            }
             return res.json({
                 success: false,
                 message: 'User is already registered'

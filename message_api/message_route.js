@@ -4,13 +4,20 @@ const { body } = require('express-validator');
 const loginRequired = require('../middleware/login_required')
 const controller = require('./message_controller')
 const Constant = require('../constant')
+const fileManager = require('../file_manager')
 
 const router = express.Router()
 
 router.post(
     '/send-message',
     loginRequired,
-    body('message').exists().isString().isLength({min: 1}),
+    fileManager.single('imageFile'),
+    body('message')
+        .exists()
+        .isString()
+        .custom((value, { req, location, path }) => {
+            return req.body.haveFile ? true : value !== ''
+        },),
     body('from')
         .notEmpty()
         .withMessage('From Phone number is required')
@@ -19,7 +26,16 @@ router.post(
         .withMessage('Invalid phone number'),
     body('roomId').exists().isString().isLength({min: 1}),
     body('sendTime').exists().isISO8601(),
-    body('membersPhoneNumber').exists().isArray({min: 2}),
+    body('membersPhoneNumber')
+        .exists()
+        .custom((value, { req, location, path }) => {
+            try {
+                return JSON.parse(value.toString()).length >= 2
+            }
+            catch (e) {
+                return value.length >= 2
+            }
+        },),
     controller.sendMessage
 )
 
